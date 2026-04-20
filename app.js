@@ -9,6 +9,8 @@ var usersRouter = require('./routes/users');
 
 const http=require('http');
 
+require('dotenv').config();
+
 var app = express();
 
 app.use(logger('dev'));
@@ -21,11 +23,13 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
+//k yebda path ne existe pas
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
 // error handler
+//ki yti7 el backend 
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
@@ -33,10 +37,10 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.json('error');
 });
  
 const server =http.createServer(app);
-server.listen(5000, () => {
-  console.log('server is running on port 5000');
+server.listen(process.env.PORT, () => {
+  console.log(`server is running on port ${process.env.PORT}`);
 });
