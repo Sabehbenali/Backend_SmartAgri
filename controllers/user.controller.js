@@ -1,6 +1,8 @@
 const usermodel = require('../models/user.model');
 const crypto = require('crypto'); // pour générer le code aléatoire
 const bcrypt = require('bcrypt'); // déjà utilisé
+const Farm = require('../models/farm.model');
+const jwt = require('jsonwebtoken');
 
 // GET all users
 module.exports.getAllUsers = async (req, res) => {
@@ -16,7 +18,7 @@ module.exports.getAllUsers = async (req, res) => {
 module.exports.addUser = async (req, res) => {
     try {
         const { email, motDePasse, nom, prenom, telephone } = req.body;
-        // Créer l'utilisateur avec motDePassHash = motDePasse (sera hashé par pre-save)
+        // Créer l'utilisateur
         const newUser = new usermodel({ 
             email, 
             motDePassHash: motDePasse, 
@@ -26,11 +28,39 @@ module.exports.addUser = async (req, res) => {
             DateInscription: new Date()
         });
         await newUser.save();
-        res.status(200).json({ message: "user added successfully", user: newUser });
+
+        // Créer une ferme par défaut associée à l'utilisateur
+        const farm = new Farm({
+            nom: "Ma ferme",
+            localisation: "Non renseigné",
+            utilisateurId: newUser._id
+        });
+        await farm.save();
+
+        // Générer un token JWT (pour connecter automatiquement après inscription)
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+            { id: newUser._id, farmId: farm._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.status(200).json({ 
+            message: "Inscription réussie", 
+            user: {
+                id: newUser._id,
+                email: newUser.email,
+                nom: newUser.nom,
+                prenom: newUser.prenom,
+                telephone: newUser.telephone
+            },
+            farm,
+            token
+        });
     } catch (error) {
-        res.status(500).json({ message: "error adding user", error: error.message });
+        res.status(500).json({ message: "Erreur lors de l'inscription", error: error.message });
     }
-}
+};
 
 // DELETE user
 module.exports.deletUser = async (req, res) => {
@@ -115,6 +145,41 @@ module.exports.resetPassword = async (req, res) => {
         user.resetPasswordExpires = undefined;
         await user.save();
         res.status(200).json({ message: "Mot de passe modifié avec succès" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+//connexion login
+ module.exports.login = async (req, res) => {
+    try {
+        const { email, motDePasse } = req.body;
+        const user = await usermodel.findOne({ email });
+        if (!user) return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+
+        const bcrypt = require('bcrypt');
+        const valid = await bcrypt.compare(motDePasse, user.motDePassHash);
+        if (!valid) return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+
+        const farm = await Farm.findOne({ utilisateurId: user._id });
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+            { id: user._id, farmId: farm?._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            message: "Connecté",
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                nom: user.nom,
+                prenom: user.prenom,
+                telephone: user.telephone
+            },
+            farm
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

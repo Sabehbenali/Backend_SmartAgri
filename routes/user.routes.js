@@ -12,5 +12,6 @@ router.put('/updateUser/:id',userController.updateUser);
 //  NOUVELLES ROUTES POUR MOT DE PASSE OUBLIÉ
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password', userController.resetPassword);
+router.post('/login', userController.login);
 
 module.exports = router;
