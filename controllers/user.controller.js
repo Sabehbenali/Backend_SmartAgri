@@ -29,16 +29,15 @@ module.exports.addUser = async (req, res) => {
         });
         await newUser.save();
 
-        // Créer une ferme par défaut associée à l'utilisateur
+        // Créer une ferme par défaut associée à l'utilisateur (champs vides, optionnels)
         const farm = new Farm({
-            nom: "Ma ferme",
-            localisation: "Non renseigné",
+            nom: '',
+            localisation: '',
             utilisateurId: newUser._id
         });
         await farm.save();
 
         // Générer un token JWT (pour connecter automatiquement après inscription)
-        const jwt = require('jsonwebtoken');
         const token = jwt.sign(
             { id: newUser._id, farmId: farm._id },
             process.env.JWT_SECRET,
@@ -105,7 +104,7 @@ module.exports.updateUser = async (req, res) => {
     }
 }
 
-// ========== NOUVELLES FONCTIONS POUR MOT DE PASSE OUBLIÉ ==========
+// ========== MOT DE PASSE OUBLIÉ ==========
 
 // POST forgot-password : génère un code et l'envoie (ou le retourne pour test)
 module.exports.forgotPassword = async (req, res) => {
@@ -116,7 +115,7 @@ module.exports.forgotPassword = async (req, res) => {
             return res.status(404).json({ message: "Aucun utilisateur avec cet email" });
         }
         // Générer un code à 6 chiffres (sécurisé)
-        const code = crypto.randomInt(100000, 1000000).toString();//en prut utilisé ausii math.random() mais elle est pas securisé pour le code de reinitialisation
+        const code = crypto.randomInt(100000, 1000000).toString();
         // Expiration dans 15 minutes
         const expires = Date.now() + 15 * 60 * 1000;
         user.resetPasswordToken = code;
@@ -128,6 +127,7 @@ module.exports.forgotPassword = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 // POST reset-password : vérifie le code et met à jour le mot de passe
 module.exports.resetPassword = async (req, res) => {
     try {
@@ -149,19 +149,18 @@ module.exports.resetPassword = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-//connexion login
- module.exports.login = async (req, res) => {
+
+// ========== CONNEXION ==========
+module.exports.login = async (req, res) => {
     try {
         const { email, motDePasse } = req.body;
         const user = await usermodel.findOne({ email });
         if (!user) return res.status(401).json({ message: "Email ou mot de passe incorrect" });
 
-        const bcrypt = require('bcrypt');
         const valid = await bcrypt.compare(motDePasse, user.motDePassHash);
         if (!valid) return res.status(401).json({ message: "Email ou mot de passe incorrect" });
 
         const farm = await Farm.findOne({ utilisateurId: user._id });
-        const jwt = require('jsonwebtoken');
         const token = jwt.sign(
             { id: user._id, farmId: farm?._id },
             process.env.JWT_SECRET,
@@ -179,6 +178,30 @@ module.exports.resetPassword = async (req, res) => {
                 telephone: user.telephone
             },
             farm
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// ========== UPLOAD PHOTO DE PROFIL ==========
+module.exports.uploadProfileImage = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Aucune image sélectionnée" });
+        }
+        const imageUrl = `/images/${req.file.filename}`;
+        
+        const user = await usermodel.findByIdAndUpdate(
+            req.user.id,
+            { profileImage: imageUrl },
+            { new: true }
+        ).select('-motDePassHash');
+        
+        res.status(200).json({ 
+            message: "Photo de profil mise à jour", 
+            profileImage: imageUrl,
+            user 
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
