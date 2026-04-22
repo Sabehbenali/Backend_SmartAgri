@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 const userController = require('../controllers/user.controller');
+const upload = require('../middleware/uploadfile');
+const userMiddleware = require('../middleware/user.middleware');   // ← à ajouter
 
 /* GET users listing. */
 router.get('/getAllUsers' , userController.getAllUsers);
@@ -13,5 +15,6 @@ router.put('/updateUser/:id',userController.updateUser);
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password', userController.resetPassword);
 router.post('/login', userController.login);
+router.post('/uploadProfileImage',userMiddleware,upload.single('profileImage'), userController.uploadProfileImage);
 
 module.exports = router;
