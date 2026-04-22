@@ -12,6 +12,7 @@ module.exports.getAllUsers = async (req, res) => {
 module.exports.addUser = async (req, res) => {
     try {
         const { email, motDePassHash } = req.body;
+        const newUser = new usermodel({email, motDePassHash });
         await newUser.save();
         res.status(200).json({ message: "user added succesfully", user: newUser });
     } catch (error) {
@@ -22,8 +23,10 @@ module.exports.addUser = async (req, res) => {
 module.exports.deletUser = async (req, res) => {
     try {
         const { id } = req.params;
-        await usermodel.findByIdAndDelete(id);
-        res.status(200).json({ message: "user deleted succesfully", user: newUser });
+        const deletedUser = await usermodel.findByIdAndDelete(id);
+         if (!deletedUser) {
+            return res.status(404).json({ message: "user not found" });}
+        res.status(200).json({ message: "user deleted succesfully", user: deletedUser});
     } catch (error) {
         res.status(500).json({ message: "error deleting user", error: error.message });
     }
@@ -45,11 +48,12 @@ module.exports.getUserById = async (req, res) => {
 module.exports.updateUser = async(req, res) => {
     try {
         const {id} = req.params;
-        const user = await usermodel.updateSearchIndex(id);
-        if(!user){
+        const {nom, prenom, telephone}= req.body;
+        const updateUser = await usermodel.findByIdAndUpdate(id, {nom, prenom, telephone},{new: true})
+        if(!updateUser){
             return res.status(404).json({message: "user not found"});
         }
-        res.status(200).json({ message: "user updated succesfully", user});
+        res.status(200).json({ message: "user updated succesfully", user: updateUser});
     } catch (error) {
          res.status(500).json({ message: "error updating user", error: error.message });
         
