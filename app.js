@@ -49,7 +49,7 @@ app.use(function(err, req, res, next) {
   res.json('error');
 });
 
-const server = http.createServer(app);
+const server = http.createServer(app);//sna3na server
 server.listen(process.env.PORT, () => {
   connectToMongoDB();
   console.log(`server is running on port ${process.env.PORT}`);
