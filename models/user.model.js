@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema({
     },
     telephone: String,
     DateInscription: Date,
+    resetPasswordToken: String,     // stockera le code temporaire
+    resetPasswordExpires: Date      // expiration du code
 
 }, { timestamps: true });//par deafut updated add,created add(date,temps)
 //taamel manupilation avant le stockage de données au DB
