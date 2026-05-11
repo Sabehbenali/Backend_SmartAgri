@@ -6,7 +6,7 @@ const userMiddleware = require('../middleware/utilisateur.middleware');   // ←
 
 /* GET users listing. */
 router.get('/getAllUsers' ,userMiddleware, userController.getAllUsers);
-router.post('/addUser' ,userMiddleware,userController.addUser);
+router.post('/addUser' ,userController.addUser);
 router.delete('/deletUser/:id' ,userMiddleware, userController.deletUser); 
 router.get('/getUserById/:id',userMiddleware,userController.getUserById);
 router.put('/updateUser/:id',userMiddleware,userController.updateUser);
