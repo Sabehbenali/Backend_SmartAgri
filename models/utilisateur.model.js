@@ -14,15 +14,10 @@ const utilisateurSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Middleware pour hasher le mot de passe automatiquement
-utilisateurSchema.pre('save', async function (next) {
-    if (!this.isModified('motDePasseHash')) return next();
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.motDePasseHash = await bcrypt.hash(this.motDePasseHash, salt);
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
+utilisateurSchema.pre('save', async function () {  // ✅ Pas de next
+    if (!this.isModified('motDePasseHash')) return;
+    const salt = await bcrypt.genSalt(10);
+    this.motDePasseHash = await bcrypt.hash(this.motDePasseHash, salt);
+});  // ✅ Pas besoin de next() avec async
 
 module.exports = mongoose.model('Utilisateur', utilisateurSchema);
