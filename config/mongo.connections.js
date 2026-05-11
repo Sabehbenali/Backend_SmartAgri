@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { webcrypto } = require('crypto');
+global.crypto = webcrypto;
 module.exports.connectToMongoDB = async () => {
     try {
     await mongoose.connect(process.env.MONGO_URI);
