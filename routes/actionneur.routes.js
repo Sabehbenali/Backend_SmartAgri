@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const actuatorController = require('../controllers/actuator.controller');
-const authMiddleware = require('../middleware/user.middleware');
+const actuatorController = require('../controllers/actionneur.controller');
+const authMiddleware = require('../middleware/utilisateur.middleware');
 
 router.get('/', authMiddleware, actuatorController.getActuators);
 router.post('/:id/command', authMiddleware, actuatorController.sendCommand);
