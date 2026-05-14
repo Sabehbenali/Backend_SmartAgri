@@ -1,52 +1,29 @@
 // routes/analyse.routes.js
-// Routes pour les analyses avec Gemini AI
-
 const express = require('express');
 const router = express.Router();
-const analyseController = require('../controllers/analyse.controlleur');
+const analyseController = require('../controllers/analyse.controller');
+const { uploadMiddleware } = require('../controllers/analyse.controller');
 
 /**
- * Routes pour les analyses agricoles avec Gemini
- * Préfixe: /api/analyse
+ * Routes pour les analyses avec Gemini AI
  */
 
-/**
- * @route   POST /api/analyse/sensors
- * @desc    Analyse des données de capteurs agricoles
- * @access  Public (ajoutez auth middleware si nécessaire)
- * @body    { temperature, soilMoisture, airHumidity, light?, ph? }
- */
+// Analyse des données de capteurs
 router.post('/sensors', analyseController.analyzeSensors);
 
-/**
- * @route   POST /api/analyse/weather
- * @desc    Recommandations basées sur les prévisions météo
- * @access  Public
- * @body    { forecast, temperature, humidity, etc. }
- */
+// Analyse météo et recommandations
 router.post('/weather', analyseController.analyzeWeather);
 
-/**
- * @route   POST /api/analyse/disease
- * @desc    Diagnostic de maladies des plantes
- * @access  Public
- * @body    { cropType, symptoms }
- */
+// Diagnostic de maladies des plantes
 router.post('/disease', analyseController.diagnosePlant);
 
-/**
- * @route   POST /api/analyse/custom
- * @desc    Analyse personnalisée avec prompt libre
- * @access  Public
- * @body    { prompt }
- */
+// Analyse personnalisée
 router.post('/custom', analyseController.customAnalysis);
 
-/**
- * @route   GET /api/analyse/health
- * @desc    Vérification de l'état du service Gemini
- * @access  Public
- */
+// 🌿 NOUVELLE ROUTE: Analyse de photo de plante
+router.post('/plant-image', uploadMiddleware, analyseController.analyzePlantImage);
+
+// Vérification de l'état du service
 router.get('/health', analyseController.healthCheck);
 
 module.exports = router;
